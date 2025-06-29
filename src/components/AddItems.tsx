@@ -57,7 +57,7 @@ const AddItems: React.FC<AddItemsProps> = ({ menuNumber, totalMenus, existingIte
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categories[0].id);
 
-  const addItem = (itemToAdd: { id: string, name: string, unit: 'Kg' | 'Un' }) => {
+  const addItem = (itemToAdd: Item) => {
     const existingItemIndex = selectedItems.findIndex(item => item.id === itemToAdd.id);
 
     if (existingItemIndex >= 0) {
@@ -72,7 +72,7 @@ const AddItems: React.FC<AddItemsProps> = ({ menuNumber, totalMenus, existingIte
         {
           id: itemToAdd.id,
           name: itemToAdd.name,
-          category: selectedCategory || 'unknown',
+          category: itemToAdd.category,
           quantity: 1,
           unit: itemToAdd.unit
         }
@@ -99,12 +99,27 @@ const AddItems: React.FC<AddItemsProps> = ({ menuNumber, totalMenus, existingIte
   };
 
   // Find items that match the search term or category
-  const filteredItems = searchTerm
-    ? categories.flatMap(cat => cat.items.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ))
+  const filteredItems: Item[] = searchTerm
+    ? categories.flatMap(cat =>
+        cat.items
+          .filter(item =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+          .map(item => ({
+            ...item,
+            category: cat.id,
+            quantity: 1,
+          }))
+      )
     : selectedCategory
-      ? categories.find(cat => cat.id === selectedCategory)?.items || []
+      ? (
+          categories
+            .find(cat => cat.id === selectedCategory)?.items.map(item => ({
+              ...item,
+              category: selectedCategory,
+              quantity: 1,
+            })) || []
+        )
       : [];
 
   return (
